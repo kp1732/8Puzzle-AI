@@ -13,7 +13,7 @@ mmm
 
 ***************************
 
-Figure 2. Output file format.
+Output file format:
 
 nnn 
 nnn 
