@@ -5,11 +5,16 @@ Simple AI script that solves the classic 8 puzzle problem in python. This is sti
 Input file format:
 
 nnn
-nnn
+
 nnn
 
+nnn
+
+
 mmm
+
 mmm
+
 mmm
 
 ***************************
@@ -17,12 +22,18 @@ mmm
 Output file format:
 
 nnn
-nnn
+
 nnn
 
+nnn
+
+
 mmm
+
 mmm
+
 mmm
+
 
 d
 
