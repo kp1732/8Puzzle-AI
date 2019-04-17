@@ -10,7 +10,6 @@ class node(object): # node will hold current state of puzzle as well as potentia
 		self.left = None # tuple(state array, space index)
 		self.right = None # tuple(state array, space index)
 		self.next = None  #tuple(up, down, left, right)
-		self.cost = None # cost of current state from goal node
 		self.space = None # self.state[space] represents empty space in current puzzle state 
 
 		for i in range(len(self.nodeState)): #initialize space attribute. in puzzle, space is represented with 0
@@ -124,11 +123,12 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 	def __init__(self, _root = node(), _goal = node()):
 		self.root = _root
 		self.goal = _goal
-		self.goalMap = {} # stores hash mash map of index and values of goal state array 
+		self.goalMap = {} # hash mash map of index and values of goal state array 
 		self.nextNode = _root # this is the next node to be chosen according to cost function
 		self.level = 0
 		self.totalNodes = 0
 		self.moves = ''
+		self.movesCost = ''
 		self.seen = set() # seen[state] = cost
 		self.stateDiffArray = [] #debug 
 
@@ -165,11 +165,8 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
  
 	def search(self):
 
-		while (self.nextNode.nodeState != self.goal.nodeState):# and (self.level <= 10):
+		while (self.nextNode.nodeState != self.goal.nodeState): 
 
-			print(type(self.nextNode.nodeState))
-			print(type(self.goal))
-			
 			self.level += 1
 			self.nextNode.stateSearch() #start next state search of current node
 			self.minState = ([], sys.maxint)
@@ -189,6 +186,10 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 
 						if (self.cost(state) <= self.minState[1]):
 							self.minState = (state, self.cost(state))
+							self.moves = self.moves + self.nextNode.next[i][2] + ' '
+
+					else:
+						print("SEEN")
 
 			#PRINT OUTPUT FOR DEBUG
 			print(self.minState)
@@ -202,10 +203,6 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 			#PRINT OUT PUT END
 
 			self.nextNode = node(self.minState[0])
-
-		print(self.totalNodes)
-				
-			
 
 def Read(input_file):
 	#stores initial and goal states
@@ -228,7 +225,7 @@ def Read(input_file):
 
 def main():
 
-	input_file = open('inputCustom.txt', 'r')
+	input_file = open('input1.txt', 'r')
 	
 	inputState = [] #stores initial state
 	goalState = [] #stores goal state
@@ -239,12 +236,13 @@ def main():
 	goalNode = node(goalState)
 
 
-
-	#inputNode.stateSearch()
-	#print(inputNode.space)
-	#print(inputNode.next)
-
 	searchTree = PuzzleSearchTree(inputNode, goalNode)
 	searchTree.search()
+
+	inputNode.nodePrint
+	goalNode.nodePrint
+	print(searchTree.level)
+	print(searchTree.totalNodes)
+	print(searchTree.moves)
 
 main()
