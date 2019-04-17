@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 
-class node: # node will hold current state of puzzle as well as potential next states 
+class node(object): # node will hold current state of puzzle as well as potential next states 
 
 	def __init__(self, _state = []):
 		self.nodeState = _state # state array
@@ -48,11 +48,11 @@ class node: # node will hold current state of puzzle as well as potential next s
 		nextState = self.nodeState[:]
 		swap = self.space - 3 # index in state array where space will end up
 
-		if 0 <= swap < len(self.nodeState): # check if move is valid
+		if ((0 <= swap < len(self.nodeState)) and (self.space != 0) and (self.space != 1) and (self.space != 2)):
 			temp = nextState[self.space]
 			nextState[self.space] = nextState[swap]
 			nextState[swap] = temp
-			self.up = (nextState, swap)
+			self.up = (nextState, swap, 'U')
 			return True
 		else:
 			self.up = (None, swap)
@@ -64,11 +64,11 @@ class node: # node will hold current state of puzzle as well as potential next s
 		nextState = self.nodeState[:]
 		swap = self.space + 3 # index in state array where space will end up
 
-		if 0 <= swap <= len(self.nodeState): # check if move is valid
+		if ((0 <= swap < len(self.nodeState)) and (self.space != 6) and (self.space != 7) and (self.space != 8)):
 			temp = nextState[self.space]
 			nextState[self.space] = nextState[swap]
 			nextState[swap] = temp
-			self.down = (nextState, swap)
+			self.down = (nextState, swap, 'D')
 			return True
 		else:
 			self.down = (None, swap)
@@ -79,11 +79,11 @@ class node: # node will hold current state of puzzle as well as potential next s
 		nextState = self.nodeState[:]
 		swap = self.space - 1 # index in state array where space will end up
 
-		if ((0 <= swap <= len(self.nodeState)) and ((self.space != 3) and (self.space != 7))): # check if move is valid
+		if ((0 <= swap < len(self.nodeState)) and (self.space != 0) and (self.space != 3) and (self.space != 6)): # check if move is valid
 			temp = nextState[self.space]
 			nextState[self.space] = nextState[swap]
 			nextState[swap] = temp
-			self.left = (nextState, swap)
+			self.left = (nextState, swap, 'L')
 			return True
 		else:
 			self.left = (None, swap)
@@ -94,12 +94,12 @@ class node: # node will hold current state of puzzle as well as potential next s
 		nextState = self.nodeState[:]
 		swap = self.space + 1 # index in state array where space will end up
 
-		if ((0 <= swap <= len(self.nodeState)) and ((self.space != 2) and (self.space != 5))): # check if move is valid
+		if ((0 <= swap < len(self.nodeState)) and (self.space != 2) and (self.space != 5) and (self.space != 8)):
 			temp = nextState[self.space]
 			nextState[self.space] = nextState[swap]
 			nextState[swap] = temp
-			self.right = (nextState, swap)
-
+			self.right = (nextState, swap, 'R')
+			return True
 		else:
 			self.right = (None, swap)
 			return False
@@ -119,7 +119,7 @@ class node: # node will hold current state of puzzle as well as potential next s
 
 		self.next = (up, down, left, right)
 
-class PuzzleSearchTree: # this will be the search tree that looks for goal state
+class PuzzleSearchTree(object): # this will be the search tree that looks for goal state
 
 	def __init__(self, _root = node(), _goal = node()):
 		self.root = _root
@@ -129,7 +129,7 @@ class PuzzleSearchTree: # this will be the search tree that looks for goal state
 		self.level = 0
 		self.totalNodes = 0
 		self.moves = ''
-		self.seen = {} # seen[state] = cost
+		self.seen = set() # seen[state] = cost
 		self.stateDiffArray = [] #debug 
 
 		for i in range(len(self.goal.nodeState)): # sets goalMap
@@ -165,36 +165,45 @@ class PuzzleSearchTree: # this will be the search tree that looks for goal state
  
 	def search(self):
 
-		self.minState = None #init min state
-		#self.nextNode = self.root
-		#for i in range(1):
-		while (self.nextNode.nodeState != self.goal) and (self.level <= 4):
+		while (self.nextNode.nodeState != self.goal.nodeState):# and (self.level <= 10):
+
+			print(type(self.nextNode.nodeState))
+			print(type(self.goal))
 			
 			self.level += 1
 			self.nextNode.stateSearch() #start next state search of current node
-
-			if str(self.nextNode.nodeState) not in self.seen:
-				self.seen[str(self.nextNode.nodeState)] = self.cost(self.nextNode.nodeState)
+			self.minState = ([], sys.maxint)
 
 			for i in range(len(self.nextNode.next)): #loop through node's next states, check for None states
 
-				if(self.nextNode.next[i] != None):
+				if(self.nextNode.next[i] != None): # if not an invalid state
 					state = self.nextNode.next[i][0]
 				else:
 					state = None
 
 				if state != None:
+
 					if (str(state) not in self.seen): #if state has not been encountered 
-						self.seen[str(state)] = self.cost(state)
+						self.seen.add(str(state))
 						self.totalNodes += 1
 
-					if (self.minState == None) or (self.cost(state) <= self.minState[1]):
-						self.minState = (state, self.cost(state))
+						if (self.cost(state) <= self.minState[1]):
+							self.minState = (state, self.cost(state))
 
+			#PRINT OUTPUT FOR DEBUG
 			print(self.minState)
-			print(self.nextNode.next)
+			count = 0
+			while (count < 4):
+					if self.nextNode.next[count] != None:
+						print(self.nextNode.next[count], end = ' ')
+						print(self.cost(self.nextNode.next[count][0]))
+					count += 1
 			print('')
+			#PRINT OUT PUT END
+
 			self.nextNode = node(self.minState[0])
+
+		print(self.totalNodes)
 				
 			
 
@@ -219,7 +228,7 @@ def Read(input_file):
 
 def main():
 
-	input_file = open('input2.txt', 'r')
+	input_file = open('inputCustom.txt', 'r')
 	
 	inputState = [] #stores initial state
 	goalState = [] #stores goal state
@@ -228,6 +237,12 @@ def main():
 
 	inputNode = node(inputState)
 	goalNode = node(goalState)
+
+
+
+	#inputNode.stateSearch()
+	#print(inputNode.space)
+	#print(inputNode.next)
 
 	searchTree = PuzzleSearchTree(inputNode, goalNode)
 	searchTree.search()
