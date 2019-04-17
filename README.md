@@ -16,14 +16,15 @@ mmm
 
 Output file format:
 
-nnn 
-nnn 
+nnn
+nnn
 nnn
 
-mmm 
-mmm 
+mmm
+mmm
 mmm
 
 d
 N
+
 A A A A A A A ... ... ... ... f f f f f f f f f f ........
