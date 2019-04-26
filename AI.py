@@ -1,5 +1,7 @@
-from __future__ import print_function
+from __future__ import print_function #better print function
+from Queue import PriorityQueue #will globaly keep track of cheapest states
 import sys
+
 
 class node(object): # node will hold current state of puzzle as well as potential next states 
 
@@ -19,28 +21,19 @@ class node(object): # node will hold current state of puzzle as well as potentia
 	def nodePrintSpace(self): # will print space index of state array in node, mostly for debug
 		print(self.space)
 
-	def nodePrint(self, state = None): # prints current state of node in 3x3 matix format
+	def nodePrint(self, myFile = sys.stdout): # prints current state of node in 3x3 matix format
 		
-		if state == None: # default state nodeState if no arg passed
-			state = self.nodeState
-
+		state = self.nodeState
 		index = 0
 		line = 0
 		for i in range(3):
 			for i in range(3):
-				print(state[index] + ' ', end = '')
+				print(state[index] + ' ', end = '', file = myFile)
 				index += 1
-			print('')
+			print('', file = myFile)
 			line += 1
 		if line == 3:
-			print('')
-			
-
-	def nodePrintNext(self): # prints output of stateSearch
-		self.nodePrint(self.up[0])
-		self.nodePrint(self.down[0])
-		self.nodePrint(self.left[0])
-		self.nodePrint(self.right[0])
+			print('', file = myFile)
 
 	def moveUp(self):
 		#will move space up in the puzzle and add new state to 'up' attribute - DOES NOT CHANGE nodeState
@@ -124,13 +117,13 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 		self.root = _root
 		self.goal = _goal
 		self.goalMap = {} # hash mash map of index and values of goal state array 
-		self.nextNode = _root # this is the next node to be chosen according to cost function
+		self.nextNode = _root # this is the next node to be chosen according to cost function, starts at root
 		self.level = 0
 		self.totalNodes = 0
 		self.moves = ''
 		self.movesCost = ''
 		self.seen = set() # seen[state] = cost
-		self.stateDiffArray = [] #debug 
+		self.globalSeen = PriorityQueue() #priority queue got retriving
 
 		for i in range(len(self.goal.nodeState)): # sets goalMap
 			self.goalMap[str(self.goal.nodeState[i])] = i
@@ -145,64 +138,63 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 			return 2
 
 	
-	def cost(self, state): # calculates cost of state using heuristics function
+	def cost(self, state): # calculates cost of state - heuristics function
 
 		index = 0
 		cost = 0; # cost of state to be returned
 
-		for i in range(3): #creates array index difference between current state and node
+		for i in range(3): #calculates array index difference between current state and node
+
 			for j in range(3):
-				if state[index] != '0':
-					stateDiff = abs((self.getLevel(self.goalMap[state[index]]) - i)) + abs(((self.goalMap[state[index]] % 3) - j))
+
+				if state[index] != '0': #not counting space in state cost calculation
+					stateDiff = abs((self.getLevel(self.goalMap[state[index]]) - i)) + abs(((self.goalMap[state[index]] % 3) - j)) #get state diff
 				else:
 					stateDiff = 0
 
 				cost += stateDiff 
 				index += 1
 
-		return cost
+		return cost + self.level #cost of state will include tree depth
 
  
 	def search(self):
 
-		while (self.nextNode.nodeState != self.goal.nodeState): 
+		self.movesCost = str(self.cost(self.root.nodeState)) + ' ' #add cost of initial state to moves cost string 
+		while (self.nextNode.nodeState != self.goal.nodeState): #while node state != goal state
 
-			self.level += 1
 			self.nextNode.stateSearch() #start next state search of current node
-			self.minState = ([], sys.maxint)
+			self.level += 1 #incriment level, done at every state search/expansion of node
 
 			for i in range(len(self.nextNode.next)): #loop through node's next states, check for None states
 
 				if(self.nextNode.next[i] != None): # if not an invalid state
 					state = self.nextNode.next[i][0]
-				else:
-					state = None
 
-				if state != None:
-
-					if (str(state) not in self.seen): #if state has not been encountered 
-						self.seen.add(str(state))
-						self.totalNodes += 1
-
-						if (self.cost(state) <= self.minState[1]):
-							self.minState = (state, self.cost(state))
-							self.moves = self.moves + self.nextNode.next[i][2] + ' '
-
-					else:
-						print("SEEN")
+					if (str(state) not in self.seen):
+						self.seen.add(str(state)) #add state to seen
+						self.globalSeen.put((self.cost(state), self.nextNode.next[i]))
+						self.totalNodes += 1 # incriment total node counter
 
 			#PRINT OUTPUT FOR DEBUG
-			print(self.minState)
-			count = 0
-			while (count < 4):
-					if self.nextNode.next[count] != None:
-						print(self.nextNode.next[count], end = ' ')
-						print(self.cost(self.nextNode.next[count][0]))
-					count += 1
-			print('')
+			#print(self.nextNode.nodeState)
+			#count = 0
+			#while (count < 4):
+			#		if self.nextNode.next[count] != None:
+			#			print(self.nextNode.next[count], end = ' ')
+			#			print(self.cost(self.nextNode.next[count][0]))
+			#		count += 1
+			#print('')
 			#PRINT OUT PUT END
 
-			self.nextNode = node(self.minState[0])
+			nodeNext = self.globalSeen.get()
+			self.nextNode = node(nodeNext[1][0])
+			self.moves = self.moves + nodeNext[1][2] + ' '
+			self.movesCost = self.movesCost + str(nodeNext[0]) + ' '
+
+		#print(self.nextNode.nodeState) #debug 
+					
+
 
 def Read(input_file):
 	#stores initial and goal states
@@ -225,24 +217,22 @@ def Read(input_file):
 
 def main():
 
-	input_file = open('input1.txt', 'r')
-	
-	inputState = [] #stores initial state
-	goalState = [] #stores goal state
-
+	input_file = open('input1.txt', 'r') #opens input file
 	inputState, goalState = Read(input_file) #grabs initial and goal states from file
 
-	inputNode = node(inputState)
-	goalNode = node(goalState)
+	inputNode = node(inputState) #creates node object from input state
+	goalNode = node(goalState) #creates node object from goal state
 
+	searchTree = PuzzleSearchTree(inputNode, goalNode) #creates search tree object from input and goal states
+	searchTree.search() #initiates search
 
-	searchTree = PuzzleSearchTree(inputNode, goalNode)
-	searchTree.search()
+	output_file = open(input_file.name[:6] + "_output.txt", "w+")
 
-	inputNode.nodePrint
-	goalNode.nodePrint
-	print(searchTree.level)
-	print(searchTree.totalNodes)
-	print(searchTree.moves)
+	inputNode.nodePrint(output_file)
+	goalNode.nodePrint(output_file)
+	print(searchTree.level, file = output_file)
+	print(searchTree.totalNodes, file = output_file)
+	print(searchTree.moves, file = output_file)
+	print(searchTree.movesCost, file = output_file)
 
 main()
