@@ -144,33 +144,162 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 		elif (pieceIndex == 2 or pieceIndex == 5 or pieceIndex == 8):
 			return 2
 	
+	def getConflicts(self, state): # finds linear conflicts between state and goal state
+
+		conflict_cnt = 0
+
+		#first row conflicts
+		pair_01 = (state[0], state[1]) #pair_(index)(index)
+		pair_02 = (state[0], state[2])
+		pair_12 = (state[1], state[2])
+
+		if (self.getRow(self.goalMap[pair_01[0]]) == 0 and self.getRow(self.goalMap[pair_01[1]]) == 0):
+			if (self.goalMap[pair_01[0]] > self.goalMap[pair_01[1]]):
+				#print("CONFLICT 01")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_02[0]]) == 0 and self.getRow(self.goalMap[pair_02[1]]) == 0):
+			if (self.goalMap[pair_02[0]] > self.goalMap[pair_02[1]]):
+				#print("CONFLICT 02")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_12[0]]) == 0 and self.getRow(self.goalMap[pair_12[1]]) == 0):
+			if (self.goalMap[pair_12[0]] > self.goalMap[pair_12[1]]):
+				#print("CONFLICT 12")
+				conflict_cnt += 1
+
+		#second row conflicts
+		pair_34 = (state[3], state[4]) #pair_(index)(index)
+		pair_35 = (state[3], state[5])
+		pair_45 = (state[4], state[5])
+
+		if (self.getRow(self.goalMap[pair_34[0]]) == 1 and self.getRow(self.goalMap[pair_34[1]]) == 1):
+			if (self.goalMap[pair_34[0]] > self.goalMap[pair_34[1]]):
+				#print("CONFLICT 34")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_35[0]]) == 1 and self.getRow(self.goalMap[pair_35[1]]) == 1):
+			if (self.goalMap[pair_35[0]] > self.goalMap[pair_35[1]]):
+				#print("CONFLICT 35")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_45[0]]) == 1 and self.getRow(self.goalMap[pair_45[1]]) == 1):
+			if (self.goalMap[pair_45[0]] > self.goalMap[pair_45[1]]):
+				#print("CONFLICT 45")
+				conflict_cnt += 1
+
+		#third row conflicts
+		pair_67 = (state[6], state[7]) #pair_(index)(index)
+		pair_68 = (state[6], state[8])
+		pair_78 = (state[7], state[8])
+
+		if (self.getRow(self.goalMap[pair_67[0]]) == 2 and self.getRow(self.goalMap[pair_67[1]]) == 2):
+			if (self.goalMap[pair_67[0]] > self.goalMap[pair_67[1]]):
+				#print("CONFLICT 67")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_68[0]]) == 2 and self.getRow(self.goalMap[pair_68[1]]) == 2):
+			if (self.goalMap[pair_68[0]] > self.goalMap[pair_68[1]]):
+				#print("CONFLICT 68")
+				conflict_cnt += 1
+
+		if (self.getRow(self.goalMap[pair_78[0]]) == 2 and self.getRow(self.goalMap[pair_78[1]]) == 2):
+			if (self.goalMap[pair_78[0]] > self.goalMap[pair_78[1]]):
+				#print("CONFLICT 78")
+				conflict_cnt += 1
+
+		#first column conflicts
+		pair_03 = (state[0], state[3]) #pair_(index)(index)
+		pair_06 = (state[0], state[6])
+		pair_36 = (state[3], state[6])
+
+		if (self.getColumn(self.goalMap[pair_03[0]]) == 0 and self.getColumn(self.goalMap[pair_03[1]]) == 0):
+			if (self.goalMap[pair_03[0]] > self.goalMap[pair_03[1]]):
+				#print("CONFLICT 03")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_06[0]]) == 0 and self.getColumn(self.goalMap[pair_06[1]]) == 0):
+			if (self.goalMap[pair_06[0]] > self.goalMap[pair_06[1]]):
+				#print("CONFLICT 06")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_36[0]]) == 0 and self.getColumn(self.goalMap[pair_36[1]]) == 0):
+			if (self.goalMap[pair_36[0]] > self.goalMap[pair_36[1]]):
+				#print("CONFLICT 36")
+				conflict_cnt += 1
+
+		#second column conflicts
+		pair_14 = (state[1], state[4]) #pair_(index)(index)
+		pair_17 = (state[1], state[7])
+		pair_47 = (state[4], state[7])
+
+		if (self.getColumn(self.goalMap[pair_14[0]]) == 1 and self.getColumn(self.goalMap[pair_14[1]]) == 1):
+			if (self.goalMap[pair_14[0]] > self.goalMap[pair_14[1]]):
+				#print("CONFLICT 03")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_17[0]]) == 1 and self.getColumn(self.goalMap[pair_17[1]]) == 1):
+			if (self.goalMap[pair_17[0]] > self.goalMap[pair_17[1]]):
+				#print("CONFLICT 06")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_47[0]]) == 1 and self.getColumn(self.goalMap[pair_47[1]]) == 1):
+			if (self.goalMap[pair_47[0]] > self.goalMap[pair_47[1]]):
+				#print("CONFLICT 36")
+				conflict_cnt += 1
+
+		#third column conflicts
+		pair_25 = (state[2], state[5]) #pair_(index)(index)
+		pair_28 = (state[2], state[8])
+		pair_58 = (state[5], state[8])
+
+		if (self.getColumn(self.goalMap[pair_25[0]]) == 2 and self.getColumn(self.goalMap[pair_25[1]]) == 2):
+			if (self.goalMap[pair_25[0]] > self.goalMap[pair_25[1]]):
+				#print("CONFLICT 03")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_28[0]]) == 2 and self.getColumn(self.goalMap[pair_28[1]]) == 2):
+			if (self.goalMap[pair_28[0]] > self.goalMap[pair_28[1]]):
+				#print("CONFLICT 06")
+				conflict_cnt += 1
+
+		if (self.getColumn(self.goalMap[pair_58[0]]) == 2 and self.getColumn(self.goalMap[pair_58[1]]) == 2):
+			if (self.goalMap[pair_58[0]] > self.goalMap[pair_58[1]]):
+				#print("CONFLICT 36")
+				conflict_cnt += 1
+
+		return conflict_cnt
+
 	def cost(self, state, heuristic): # calculates cost of state - heuristics function
 
 		index = 0
 		cost = 0 # cost of state to be returned
 
 		for i in range(3): #calculates array index difference between current state and node
-
 			for j in range(3):
-
 				if state[index] != '0': #not counting space in state cost calculation
-					stateDiff = abs((self.getRow(self.goalMap[state[index]]) - i)) + abs(((self.goalMap[state[index]] % 3) - j)) #get state diff
+					#stateDiff = horizontal moves + vertival moves
+					stateDiff = abs((self.getRow(self.goalMap[state[index]]) - i)) + abs(((self.getColumn(self.goalMap[state[index]])) - j))
 				else:
 					stateDiff = 0
 
 				cost += stateDiff
 				index += 1
 
-		if (heuristic == '0'): 
+		if (heuristic == '-m'): 
 			return cost  #cost of state, no linear conflic
-		elif (heuristic == '1'): 
-			return cost #cost of state + (2 * linear conflic)
+
+		elif (heuristic == '-l'): 
+			conflict_cnt = self.getConflicts(state)
+			return cost + (2 * conflict_cnt) #cost of state + (2 * linear conflic)
+
 		else: 
+			print("INVALID HEURISTIC SELECTION")
 			quit()
 
 
  
-	def search(self, heuristic = '0'):
+	def search(self, heuristic = '-m'):
 
 		self.movesCost = str(self.cost(self.root.nodeState, heuristic)) + ' ' #add cost of initial state to moves cost string
 		
@@ -194,15 +323,15 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 			#while (count < len(self.nextNode.next)):
 			#	if self.nextNode.next[count] != None:
 			#		print(self.nextNode.next[count], end = ' ')
-			#		print(self.cost(self.nextNode.next[count][0]))
+			#		print(self.cost(self.nextNode.next[count][0], heuristic))
 			#	count += 1
 			#print('')
 			#PRINT OUT PUT END
 
 			nodeNext = self.globalSeen.get() #get global minimum costly state out of those seen
-			print(nodeNext[1], end = ' ') #debug
-			print(nodeNext[0]) #debug
-			print('')
+			#print(nodeNext[1], end = ' ') #debug
+			#print(nodeNext[0]) #debug
+			#print('') #debug
 			self.nextNode = node(nodeNext[1][0]) 
 			self.moves = self.moves + nodeNext[1][2] + ' ' #add move to moves line
 			self.movesCost = self.movesCost + str(nodeNext[0]) + ' ' #add move cost to moves line, includes depth
@@ -239,12 +368,18 @@ def main():
 
 		searchTree = PuzzleSearchTree(inputNode, goalNode) #creates search tree object from input and goal states
 		
-		if (len(sys.argv) > 2): #will start search, defaults to manhattan distance heuristic (no linear conflict)
+		if (len(sys.argv) > 2): #pass cmd line argument and set heuristic_name for output file
 			searchTree.search(sys.argv[2])
+			if (sys.argv[2] == '-l'):
+				heuristic_name = 'linear_conflict'
+			else:
+				heuristic_name = 'manhattan'
 		else:
 			searchTree.search()
+			heuristic_name = 'manhattan'
 
-		output_file = open(sys.argv[1] + "_output.txt", "w+") #creates output file
+		output_file = open(sys.argv[1] + '_output_' + heuristic_name + '.txt', 'w+') #creates output file
+
 		#next 6 lines write output to output_file
 		inputNode.nodePrint(output_file)
 		goalNode.nodePrint(output_file)
@@ -254,6 +389,6 @@ def main():
 		print(searchTree.movesCost, file = output_file)
 
 	else:
-		print("can't run without a file bud. try: python AI.py 'file.txt' ")
+		print("can't run without a file. try: python AI.py 'file.txt' ")
 
 main()
