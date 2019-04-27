@@ -2,7 +2,6 @@ from __future__ import print_function #better print function
 from Queue import PriorityQueue #will globaly keep track of cheapest states
 import sys
 
-
 class node(object): # node will hold current state of puzzle as well as potential next states 
 
 	def __init__(self, _state = []):
@@ -21,7 +20,7 @@ class node(object): # node will hold current state of puzzle as well as potentia
 	def nodePrintSpace(self): # will print space index of state array in node, mostly for debug
 		print(self.space)
 
-	def nodePrint(self, myFile = sys.stdout): # prints current state of node in 3x3 matix format
+	def nodePrint(self, myFile = sys.stdout): # prints current state of node in 3x3 matix format, default output is stdout
 		
 		state = self.nodeState
 		index = 0
@@ -119,48 +118,62 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 		self.goalMap = {} # hash mash map of index and values of goal state array 
 		self.nextNode = _root # this is the next node to be chosen according to cost function, starts at root
 		self.level = 0
-		self.totalNodes = 0
 		self.moves = ''
 		self.movesCost = ''
-		self.seen = set() # seen[state] = cost
-		self.globalSeen = PriorityQueue() #priority queue got retriving
+		self.seen = {} # seen[state] = cost
+		self.globalSeen = PriorityQueue() #keeps track of global min state 
 
 		for i in range(len(self.goal.nodeState)): # sets goalMap
 			self.goalMap[str(self.goal.nodeState[i])] = i
 
-	def getLevel(self,keyIndex):
+	def getRow(self, pieceIndex): #given index of single piece in state array, returns the row it's in
 	
-		if 0 <= keyIndex <=2:
+		if 0 <= pieceIndex <=2:
 			return 0
-		elif 3 <= keyIndex <=5:
+		elif 3 <= pieceIndex <=5:
 			return 1
-		elif 6 <= keyIndex <=8:
+		elif 6 <= pieceIndex <=8:
 			return 2
 
+	def getColumn(self, pieceIndex): #given index of single piece in state array, returns the column it's in
 	
-	def cost(self, state): # calculates cost of state - heuristics function
+		if (pieceIndex == 0 or pieceIndex == 3 or pieceIndex == 6):
+			return 0
+		elif (pieceIndex == 1 or pieceIndex == 4 or pieceIndex == 7):
+			return 1
+		elif (pieceIndex == 2 or pieceIndex == 5 or pieceIndex == 8):
+			return 2
+	
+	def cost(self, state, heuristic): # calculates cost of state - heuristics function
 
 		index = 0
-		cost = 0; # cost of state to be returned
+		cost = 0 # cost of state to be returned
 
 		for i in range(3): #calculates array index difference between current state and node
 
 			for j in range(3):
 
 				if state[index] != '0': #not counting space in state cost calculation
-					stateDiff = abs((self.getLevel(self.goalMap[state[index]]) - i)) + abs(((self.goalMap[state[index]] % 3) - j)) #get state diff
+					stateDiff = abs((self.getRow(self.goalMap[state[index]]) - i)) + abs(((self.goalMap[state[index]] % 3) - j)) #get state diff
 				else:
 					stateDiff = 0
 
-				cost += stateDiff 
+				cost += stateDiff
 				index += 1
 
-		return cost + self.level #cost of state will include tree depth
+		if (heuristic == '0'): 
+			return cost  #cost of state, no linear conflic
+		elif (heuristic == '1'): 
+			return cost #cost of state + (2 * linear conflic)
+		else: 
+			quit()
+
 
  
-	def search(self):
+	def search(self, heuristic = '0'):
 
-		self.movesCost = str(self.cost(self.root.nodeState)) + ' ' #add cost of initial state to moves cost string 
+		self.movesCost = str(self.cost(self.root.nodeState, heuristic)) + ' ' #add cost of initial state to moves cost string
+		
 		while (self.nextNode.nodeState != self.goal.nodeState): #while node state != goal state
 
 			self.nextNode.stateSearch() #start next state search of current node
@@ -172,33 +185,33 @@ class PuzzleSearchTree(object): # this will be the search tree that looks for go
 					state = self.nextNode.next[i][0]
 
 					if (str(state) not in self.seen):
-						self.seen.add(str(state)) #add state to seen
-						self.globalSeen.put((self.cost(state), self.nextNode.next[i]))
-						self.totalNodes += 1 # incriment total node counter
+						self.seen[str(state)] =  (self.cost(state, heuristic) + self.level) #add state to seen along with it's cost
+						self.globalSeen.put((self.seen[str(state)], self.nextNode.next[i]))
 
 			#PRINT OUTPUT FOR DEBUG
 			#print(self.nextNode.nodeState)
 			#count = 0
-			#while (count < 4):
-			#		if self.nextNode.next[count] != None:
-			#			print(self.nextNode.next[count], end = ' ')
-			#			print(self.cost(self.nextNode.next[count][0]))
-			#		count += 1
+			#while (count < len(self.nextNode.next)):
+			#	if self.nextNode.next[count] != None:
+			#		print(self.nextNode.next[count], end = ' ')
+			#		print(self.cost(self.nextNode.next[count][0]))
+			#	count += 1
 			#print('')
 			#PRINT OUT PUT END
 
-			nodeNext = self.globalSeen.get()
-			self.nextNode = node(nodeNext[1][0])
-			self.moves = self.moves + nodeNext[1][2] + ' '
-			self.movesCost = self.movesCost + str(nodeNext[0]) + ' '
+			nodeNext = self.globalSeen.get() #get global minimum costly state out of those seen
+			print(nodeNext[1], end = ' ') #debug
+			print(nodeNext[0]) #debug
+			print('')
+			self.nextNode = node(nodeNext[1][0]) 
+			self.moves = self.moves + nodeNext[1][2] + ' ' #add move to moves line
+			self.movesCost = self.movesCost + str(nodeNext[0]) + ' ' #add move cost to moves line, includes depth
 
 		#print(self.nextNode.nodeState) #debug 
-					
-
 
 def Read(input_file):
-	#stores initial and goal states
-	inputState = []
+	
+	inputState = [] #stores initial and goal states
 	goalState = [] 
 	lineCount = 1; #keeps track of how many lines read to distiguish input and goal states in file
 
@@ -214,25 +227,33 @@ def Read(input_file):
 
 	return inputState, goalState #returns both states as tuple, easier for assignment in calling function
 
-
 def main():
 
-	input_file = open('input1.txt', 'r') #opens input file
-	inputState, goalState = Read(input_file) #grabs initial and goal states from file
+	if (len(sys.argv) > 1): # if input file arg exists
 
-	inputNode = node(inputState) #creates node object from input state
-	goalNode = node(goalState) #creates node object from goal state
+		input_file = open(sys.argv[1] + '.txt', 'r') #opens input file
+		inputState, goalState = Read(input_file) #grabs initial and goal states from file
 
-	searchTree = PuzzleSearchTree(inputNode, goalNode) #creates search tree object from input and goal states
-	searchTree.search() #initiates search
+		inputNode = node(inputState) #creates node object from input state
+		goalNode = node(goalState) #creates node object from goal state
 
-	output_file = open(input_file.name[:6] + "_output.txt", "w+")
+		searchTree = PuzzleSearchTree(inputNode, goalNode) #creates search tree object from input and goal states
+		
+		if (len(sys.argv) > 2): #will start search, defaults to manhattan distance heuristic (no linear conflict)
+			searchTree.search(sys.argv[2])
+		else:
+			searchTree.search()
 
-	inputNode.nodePrint(output_file)
-	goalNode.nodePrint(output_file)
-	print(searchTree.level, file = output_file)
-	print(searchTree.totalNodes, file = output_file)
-	print(searchTree.moves, file = output_file)
-	print(searchTree.movesCost, file = output_file)
+		output_file = open(sys.argv[1] + "_output.txt", "w+") #creates output file
+		#next 6 lines write output to output_file
+		inputNode.nodePrint(output_file)
+		goalNode.nodePrint(output_file)
+		print(searchTree.level, file = output_file)
+		print(len(searchTree.seen), file = output_file)
+		print(searchTree.moves, file = output_file)
+		print(searchTree.movesCost, file = output_file)
+
+	else:
+		print("can't run without a file bud. try: python AI.py 'file.txt' ")
 
 main()
